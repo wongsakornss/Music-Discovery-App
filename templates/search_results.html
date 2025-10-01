@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="text-xl font-semibold">ผลการค้นหา: "{{ q }}" ({{ 'ศิลปิน' if mode=='artist' else 'แนวเพลง' }})</h2>
+
+<form class="mt-4 flex items-center gap-2 text-sm">
+  <span class="opacity-70">เลือกเพลย์ลิสต์ปลายทาง:</span>
+  <select id="dest_pl" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+    {% for p in user_playlists %}
+      <option value="{{ p.id }}">{{ p.name }}</option>
+    {% endfor %}
+  </select>
+</form>
+
+<div class="mt-5 grid gap-3">
+  {% for t in results %}
+  <div class="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between">
+    <div>
+      <div class="font-medium">{{ t.title }}</div>
+      <div class="text-white/60 text-sm">โดย {{ t.artist }}</div>
+      {% if t.url %}<a href="{{ t.url }}" target="_blank" class="text-emerald-300 text-sm hover:underline">ดูบน Last.fm</a>{% endif %}
+    </div>
+    <form action="" method="post" onsubmit="this.action='/playlist/'+document.getElementById('dest_pl').value+'/add';">
+      <input type="hidden" name="title" value="{{ t.title }}"/>
+      <input type="hidden" name="artist" value="{{ t.artist }}"/>
+      <input type="hidden" name="url" value="{{ t.url }}"/>
+      <input type="hidden" name="mbid" value="{{ t.mbid }}"/>
+      <button class="rounded-xl bg-emerald-500 px-3 py-2 text-sm hover:bg-emerald-400">เพิ่มใน Playlist</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

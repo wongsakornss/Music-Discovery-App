@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex items-center justify-between">
+  <h2 class="text-xl font-semibold">เพลย์ลิสต์ของฉัน</h2>
+  <form method="post" action="{{ url_for('playlist_new') }}" class="flex items-center gap-2">
+    <input name="name" placeholder="ชื่อเพลย์ลิสต์" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+    <button class="rounded-xl bg-emerald-500 px-3 py-2 text-sm hover:bg-emerald-400">สร้าง</button>
+  </form>
+</div>
+
+<ul class="mt-5 grid gap-3">
+  {% for p in items %}
+  <li class="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between">
+    <div>
+      <div class="font-medium">{{ p.name }}</div>
+      <div class="text-white/60 text-sm">{{ p.description }}</div>
+      {% if p.is_public and p.share_token %}
+      <div class="text-xs text-white/40">แชร์: {{ (os.getenv('APP_BASE_URL') or request.host_url.rstrip('/')) ~ '/p/' ~ p.share_token }}</div>
+      {% endif %}
+    </div>
+    <a class="rounded-xl border border-white/10 px-3 py-2 text-sm hover:bg-white/10" href="{{ url_for('playlist_detail', playlist_id=p.id) }}">เปิด</a>
+  </li>
+  {% else %}
+  <li class="rounded-2xl border border-white/10 bg-white/5 p-4">ยังไม่มีเพลย์ลิสต์ สร้างใหม่ได้เลย</li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex items-center gap-3 flex-wrap">
+  <h2 class="text-xl font-semibold">{{ pl.name }}</h2>
+  <a href="{{ url_for('export_csv', playlist_id=pl.id) }}" class="rounded-xl border border-white/10 px-3 py-1.5 text-sm hover:bg-white/10">Export as CSV</a>
+  <a href="{{ url_for('export_spotify', playlist_id=pl.id) }}" class="rounded-xl border border-white/10 px-3 py-1.5 text-sm hover:bg-white/10">ส่งออกไป Spotify</a>
+  <a href="{{ url_for('playlist_share', playlist_id=pl.id) }}" class="rounded-xl border border-emerald-400/40 text-emerald-300 px-3 py-1.5 text-sm hover:bg-emerald-500/10">แชร์</a>
+</div>
+
+<form method="post" action="{{ url_for('playlist_edit', playlist_id=pl.id) }}" class="mt-4 grid gap-2 max-w-lg">
+  <label class="text-sm opacity-70">ชื่อเพลย์ลิสต์</label>
+  <input name="name" value="{{ pl.name }}" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+  <label class="text-sm opacity-70">คำอธิบาย</label>
+  <textarea name="description" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2" rows="3">{{ pl.description }}</textarea>
+  <label class="inline-flex items-center gap-2 mt-1">
+    <input type="checkbox" name="is_public" {% if pl.is_public %}checked{% endif %}>
+    <span class="text-sm">แสดงสาธารณะ</span>
+  </label>
+  <button class="rounded-xl bg-emerald-500 px-3 py-2 text-sm hover:bg-emerald-400 mt-2">บันทึก</button>
+</form>
+
+<ul class="mt-6 grid gap-3">
+  {% for t in tracks %}
+  <li class="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-3">
+    <div>
+      <div class="font-medium">{{ t.title }}</div>
+      <div class="text-white/60 text-sm">{{ t.artist }}</div>
+      {% if t.url %}<a href="{{ t.url }}" target="_blank" class="text-emerald-300 text-sm hover:underline">Last.fm</a>{% endif %}
+      <div class="text-xs text-white/40">#{{ t.position }}</div>
+    </div>
+    <div class="flex items-center gap-2">
+      <a class="rounded-xl border border-white/10 px-3 py-1.5 text-sm hover:bg-white/10" href="{{ url_for('playlist_move', playlist_id=pl.id, track_id=t.id, direction='up') }}">↑</a>
+      <a class="rounded-xl border border-white/10 px-3 py-1.5 text-sm hover:bg-white/10" href="{{ url_for('playlist_move', playlist_id=pl.id, track_id=t.id, direction='down') }}">↓</a>
+      <a class="rounded-xl border border-red-400/40 text-red-300 px-3 py-1.5 text-sm hover:bg-red-500/10" href="{{ url_for('playlist_remove', playlist_id=pl.id, track_id=t.id) }}">ลบ</a>
+    </div>
+  </li>
+  {% else %}
+  <li class="rounded-2xl border border-white/10 bg-white/5 p-4">ยังไม่มีเพลงในเพลย์ลิสต์นี้</li>
+  {% endfor %}
+</ul>
+{% endblock %}

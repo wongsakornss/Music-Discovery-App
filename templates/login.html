@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="text-2xl font-semibold">เข้าสู่ระบบ</h1>
+<form method="post" class="mt-6 grid gap-3 max-w-sm">
+  <input name="username" placeholder="ชื่อผู้ใช้"
+    class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3" required>
+  <input name="password" type="password" placeholder="รหัสผ่าน"
+    class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3" required>
+  <button
+    class="rounded-2xl bg-emerald-500 px-5 py-3 font-medium hover:bg-emerald-400">เข้าสู่ระบบ</button>
+  <p class="text-sm text-white/60">ยังไม่มีบัญชี? <a
+      class="text-emerald-300 hover:underline"
+      href="{{ url_for('register') }}">สมัครสมาชิก</a></p>
+</form>
+{% endblock %}

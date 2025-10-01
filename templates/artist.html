@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2 class="text-xl font-semibold">ศิลปิน: {{ name }}</h2>
+
+<!-- เพลงยอดนิยม -->
+<h3 class="mt-5 mb-2 font-medium">เพลงยอดนิยม</h3>
+{% if top_tracks and top_tracks|length > 0 %}
+  <div class="grid gap-3">
+    {% for t in top_tracks %}
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between">
+        <div class="pr-4">
+          <div class="font-medium">{{ t.title }}</div>
+          <div class="text-white/60 text-sm">โดย {{ t.artist }}</div>
+          {% if t.url %}
+            <a href="{{ t.url }}" target="_blank" rel="noopener"
+               class="text-emerald-300 text-sm hover:underline">ดูบน Last.fm</a>
+          {% endif %}
+        </div>
+        <form action="{{ url_for('playlist_add') }}" method="post" class="shrink-0">
+          <input type="hidden" name="title" value="{{ t.title }}">
+          <input type="hidden" name="artist" value="{{ t.artist }}">
+          <input type="hidden" name="url" value="{{ t.url }}">
+          <input type="hidden" name="mbid" value="{{ t.mbid }}">
+          <button class="rounded-xl bg-emerald-500 px-3 py-2 text-sm hover:bg-emerald-400">
+            เพิ่มใน Playlist
+          </button>
+        </form>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-white/60">ไม่มีเพลงยอดนิยมสำหรับศิลปินนี้</p>
+{% endif %}
+
+<!-- ศิลปินแนะนำที่คล้ายกัน -->
+<h3 class="mt-8 mb-2 font-medium">ศิลปินแนะนำที่คล้ายกัน</h3>
+{% if similar and similar|length > 0 %}
+  <div class="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+    {% for a in similar %}
+      <a class="rounded-2xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 transition"
+         href="{{ url_for('artist_view', name=a.name) }}">
+        <div class="flex items-center gap-3">
+          <!-- รูปศิลปิน (ถ้ามี) -->
+          {% if a.image %}
+            <img src="{{ a.image }}" alt="รูป {{ a.name }}"
+                 class="w-14 h-14 rounded-xl object-cover border border-white/10">
+          {% else %}
+            <div class="w-14 h-14 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white/60 text-sm">
+              N/A
+            </div>
+          {% endif %}
+          <div class="min-w-0">
+            <div class="font-medium truncate">{{ a.name }}</div>
+            <!-- match score ถ้ามี -->
+            {% if a.match is defined %}
+              <div class="text-white/60 text-xs">match: {{ '%.2f'|format(a.match) }}</div>
+            {% endif %}
+            {% if a.url %}
+              <div class="text-white/50 text-xs truncate">{{ a.url }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-white/60">ไม่มีศิลปินที่ใกล้เคียง</p>
+{% endif %}
+
+{% endblock %}

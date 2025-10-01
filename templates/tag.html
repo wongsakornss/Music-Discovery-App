@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2 class="text-xl font-semibold">Tag: {{ tag }}</h2>
+<p class="text-white/60 text-sm mt-1">เพลงยอดนิยมจาก Last.fm</p>
+
+{% if tracks and tracks|length > 0 %}
+  <ul class="mt-5 grid gap-3">
+    {% for t in tracks %}
+      <li class="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between">
+        <div class="min-w-0 pr-4">
+          <div class="font-medium truncate">{{ t.title }}</div>
+          <div class="text-white/60 text-sm truncate">โดย {{ t.artist }}</div>
+          {% if t.url %}
+            <a href="{{ t.url }}" target="_blank" rel="noopener"
+               class="text-emerald-300 text-sm hover:underline">ดูบน Last.fm</a>
+          {% endif %}
+        </div>
+
+        {% if user_playlists and user_playlists|length > 0 %}
+          <form
+            action="{{ url_for('playlist_add', playlist_id=0) }}"
+            method="post"
+            class="shrink-0 flex items-center gap-2"
+            onsubmit="
+              const s=this.querySelector('[name=playlist_id]');
+              this.action = this.action.replace(/\/playlist\/\d+\/add$/, '/playlist/' + s.value + '/add');
+            "
+          >
+            <select name="playlist_id"
+                    class="rounded-xl bg-white/5 border border-white/10 px-2 py-2 text-sm">
+              {% for p in user_playlists %}
+                <option value="{{ p.id }}">{{ p.name }}</option>
+              {% endfor %}
+            </select>
+            <input type="hidden" name="title" value="{{ t.title }}">
+            <input type="hidden" name="artist" value="{{ t.artist }}">
+            <input type="hidden" name="url" value="{{ t.url }}">
+            <input type="hidden" name="mbid" value="{{ t.mbid }}">
+            <button class="rounded-xl bg-emerald-500 px-3 py-2 text-sm hover:bg-emerald-400">
+              เพิ่มใน Playlist
+            </button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('playlists_view') }}"
+             class="shrink-0 rounded-xl border border-white/10 px-3 py-2 text-sm hover:bg-white/10">
+            สร้างเพลย์ลิสต์ก่อน
+          </a>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-white/60 mt-5">ยังไม่มีเพลงสำหรับแท็กนี้</p>
+{% endif %}
+
+{% endblock %}

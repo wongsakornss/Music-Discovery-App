@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<!-- Search Bar -->
+<div class="space-y-3">
+  <form action="{{ url_for('search') }}" method="get" class="flex gap-3">
+    <input name="q" type="text" placeholder="เช่น K-POP หรือ Taylor Swift"
+      class="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400">
+    <select name="mode"
+      class="rounded-2xl border border-white/10 px-3 py-3 text-sm
+         bg-gray-900 text-white [color-scheme:dark]">
+      <option class="text-white bg-gray-900" value="tag">ค้นหาตามแท็ก</option>
+      <option class="text-white bg-gray-900"
+        value="artist">ค้นหาตามศิลปิน</option>
+      <option class="text-white bg-gray-900" value="track">ค้นหาตามเพลง</option>
+    </select>
+    <button class="rounded-2xl bg-emerald-500 px-5 py-3 hover:bg-emerald-400">
+      ค้นหา
+    </button>
+  </form>
+</div>
+
+<!-- ลบส่วน "ตั้งค่าแนวเพลงเริ่มต้น" ออก (โค้ดเดิมทั้งหมดของบล็อกนั้น) -->
+
+<!-- Tag Cards ใต้ Search Bar -->
+<section class="mt-6">
+  <h3 class="mb-3 font-medium">สำรวจตามแท็กยอดนิยม</h3>
+  <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    {% for t in tags %}
+    <a href="{{ url_for('tag_view', tag=t.slug) }}"
+      class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition">
+      <div class="aspect-square relative">
+        <!-- gradient background -->
+        <div class="absolute inset-0 opacity-60"
+          style="background:
+          radial-gradient(120% 120% at 0% 0%, rgba(16,185,129,.25), transparent 60%),
+          radial-gradient(120% 120% at 100% 0%, rgba(59,130,246,.25), transparent 60%),
+          radial-gradient(120% 120% at 100% 100%, rgba(244,63,94,.25), transparent 60%),
+          radial-gradient(120% 120% at 0% 100%, rgba(234,179,8,.25), transparent 60%);">
+        </div>
+
+        <!-- overlay label -->
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span
+            class="px-3 py-1 rounded-xl bg-black/60 text-white font-semibold">
+            {{ t.name }}
+          </span>
+        </div>
+      </div>
+      <div class="px-4 py-3 text-xs text-white/80">{{ t.caption }}</div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock %}

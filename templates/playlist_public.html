@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2 class="text-xl font-semibold">🎵 {{ pl.name }} <span class="text-white/60 text-sm">(สาธารณะ)</span></h2>
+{% if pl.description %}
+  <p class="text-white/60 mt-1">{{ pl.description }}</p>
+{% endif %}
+
+<!-- แถวข้อมูลสรุป + ปุ่มคัดลอกลิงก์ -->
+<div class="mt-3 flex flex-wrap items-center gap-2">
+  <span class="text-white/60 text-sm">จำนวนเพลง: {{ tracks|length }}</span>
+  <button id="copyLinkBtn"
+          class="rounded-xl border border-white/10 px-3 py-1.5 text-sm hover:bg-white/10"
+          data-url="{{ share_url }}">
+    คัดลอกลิงก์
+  </button>
+  {% if share_url %}
+    <a href="{{ share_url }}" target="_blank" rel="noopener"
+       class="rounded-xl border border-white/10 px-3 py-1.5 text-sm hover:bg-white/10">
+      เปิดลิงก์นี้
+    </a>
+  {% endif %}
+</div>
+
+<!-- รายการเพลง -->
+{% if tracks and tracks|length > 0 %}
+  <ul class="mt-5 grid gap-3">
+    {% for t in tracks %}
+      <li class="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between">
+        <div class="min-w-0 pr-4">
+          <div class="font-medium truncate">{{ t.title }}</div>
+          <div class="text-white/60 text-sm truncate">{{ t.artist }}</div>
+          {% if t.url %}
+            <a href="{{ t.url }}" target="_blank" rel="noopener"
+               class="text-emerald-300 text-sm hover:underline">ดูบน Last.fm</a>
+          {% endif %}
+        </div>
+        <div class="text-white/40 text-xs shrink-0">#{{ t.position }}</div>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-white/60 mt-5">ยังไม่มีเพลงในเพลย์ลิสต์นี้</p>
+{% endif %}
+
+<!-- สคริปต์คัดลอกลิงก์ -->
+<script>
+  (function () {
+    const btn = document.getElementById('copyLinkBtn');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      const url = btn.getAttribute('data-url') || window.location.href;
+      try {
+        await navigator.clipboard.writeText(url);
+        btn.textContent = 'คัดลอกแล้ว ✓';
+        setTimeout(() => btn.textContent = 'คัดลอกลิงก์', 1600);
+      } catch (e) {
+        // fallback
+        const tmp = document.createElement('input');
+        tmp.value = url;
+        document.body.appendChild(tmp);
+        tmp.select();
+        document.execCommand('copy');
+        document.body.removeChild(tmp);
+        btn.textContent = 'คัดลอกแล้ว ✓';
+        setTimeout(() => btn.textContent = 'คัดลอกลิงก์', 1600);
+      }
+    });
+  })();
+</script>
+
+{% endblock %}

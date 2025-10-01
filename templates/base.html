@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Music Discovery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}">
+  </head>
+  <body class="min-h-screen bg-gray-950 text-gray-100">
+    <header
+      class="sticky top-0 z-10 backdrop-blur border-b border-white/10 bg-black/40">
+      <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"
+          aria-hidden="true"><path d="M9 3v12a4 4 0 1 0 2-3.465V3H9z" /></svg>
+        <a href="{{ url_for('index') }}" class="font-semibold">Music
+          Discovery</a>
+        <nav class="ml-auto flex items-center gap-4 text-sm">
+          {% if current_user.is_authenticated %}
+          <span class="opacity-70 hidden sm:inline">สวัสดี, {{
+            current_user.username }}</span>
+          <a href="{{ url_for('index') }}" class="hover:underline">Home</a>
+          <a href="{{ url_for('playlists_view') }}" class="hover:underline">My Playlists</a>
+          <a href="{{ url_for('mood') }}" class="hover:underline">Mood</a>
+          {% if current_playlist %}
+          <a href="{{ url_for('export_csv', playlist_id=current_playlist.id) }}" class="hover:underline">
+          Export
+          </a>
+          {% endif %}
+          <a href="{{ url_for('logout') }}"
+            class="hover:underline text-red-300">Logout</a>
+          {% else %}
+          <a href="{{ url_for('login') }}" class="hover:underline">Login</a>
+          <a href="{{ url_for('register') }}"
+            class="hover:underline">Register</a>
+          {% endif %}
+        </nav>
+      </div>
+    </header>
+
+    {% if get_flashed_messages() %}
+    <div class="max-w-5xl mx-auto px-4 pt-4">
+      {% for m in get_flashed_messages() %}
+      <div
+        class="mb-2 rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 text-emerald-200">{{
+        m }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="max-w-5xl mx-auto px-4 py-6">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer
+      class="border-t border-white/10 py-6 text-center text-xs text-white/60">
+      Built with Flask · Tailwind · Last.fm API
+    </footer>
+  </body>
+</html>
