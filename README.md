@@ -10,7 +10,7 @@
 - Export Playlist ไปยัง Spotify
 - รองรับการเก็บ token ด้วย OAuth2 (Spotify)
 
-## 📂 Project Structure
+## Project Structure
 - `app.py` – Flask entry point, routes
 - `lastfm.py` – Last.fm API client
 - `models.py` – Data models เช่น `Track`
@@ -20,7 +20,7 @@
 - `requirements.txt` – Dependencies
 - `.env` – environment variables
 
-## 🚀 How to run
+## How to run
 ```bash
 # ติดตั้ง dependencies
 pip install -r requirements.txt
