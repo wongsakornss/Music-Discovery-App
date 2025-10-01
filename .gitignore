@@ -14,3 +14,4 @@ ENV/
 # --- Databases ---
 *.db
 *.sqlite3
+.env.example
