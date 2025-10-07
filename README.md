@@ -22,11 +22,18 @@
 
 ## How to run
 ```bash
+# Activate Environment 
+env\Scripts\activate
+
 # ติดตั้ง dependencies
 pip install -r requirements.txt
 
 # สร้างไฟล์ .env จาก .env.example แล้วใส่ API keys
 cp .env.example .env
 
-# รันเซิร์ฟเวอร์
+# รันเซิร์ฟเวอร์บนเครื่อง
 flask run
+
+# รันเซิร์ฟเวอร์บน Docker
+docker build -t musicapp .
+docker run -d --name musicapp -p 5000:5000 --env-file .env musicapp
