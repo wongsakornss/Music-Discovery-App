@@ -18,7 +18,21 @@
       <div class="text-xs text-white/40">แชร์: {{ (os.getenv('APP_BASE_URL') or request.host_url.rstrip('/')) ~ '/p/' ~ p.share_token }}</div>
       {% endif %}
     </div>
-    <a class="rounded-xl border border-white/10 px-3 py-2 text-sm hover:bg-white/10" href="{{ url_for('playlist_detail', playlist_id=p.id) }}">เปิด</a>
+
+    <!-- ปุ่ม เปิด + ลบ (เพิ่มเฉพาะส่วนนี้) -->
+    <div class="flex items-center gap-2">
+      <a class="rounded-xl border border-white/10 px-3 py-2 text-sm hover:bg-white/10"
+         href="{{ url_for('playlist_detail', playlist_id=p.id) }}">เปิด</a>
+
+      <form action="{{ url_for('playlist_delete', playlist_id=p.id) }}"
+            method="post"
+            onsubmit="return confirm('ยืนยันลบ {{ p.name }} ? เพลงทั้งหมดในเพลย์ลิสต์จะถูกลบด้วย');">
+        <button class="rounded-xl border border-red-400/40 text-red-300 px-3 py-2 text-sm hover:bg-red-500/10">
+          ลบ
+        </button>
+      </form>
+    </div>
+    <!-- จบส่วนที่เพิ่ม -->
   </li>
   {% else %}
   <li class="rounded-2xl border border-white/10 bg-white/5 p-4">ยังไม่มีเพลย์ลิสต์ สร้างใหม่ได้เลย</li>

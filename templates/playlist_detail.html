@@ -26,7 +26,7 @@
       <div class="font-medium">{{ t.title }}</div>
       <div class="text-white/60 text-sm">{{ t.artist }}</div>
       {% if t.url %}<a href="{{ t.url }}" target="_blank" class="text-emerald-300 text-sm hover:underline">Last.fm</a>{% endif %}
-      <div class="text-xs text-white/40">#{{ t.position }}</div>
+      <div class="text-xs text-white/40">#{{ t.position + 1 }}</div>
     </div>
     <div class="flex items-center gap-2">
       <a class="rounded-xl border border-white/10 px-3 py-1.5 text-sm hover:bg-white/10" href="{{ url_for('playlist_move', playlist_id=pl.id, track_id=t.id, direction='up') }}">↑</a>
