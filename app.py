@@ -1,6 +1,5 @@
 import os
 import time
-
 from requests import session
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 from typing import Optional
@@ -347,6 +346,39 @@ def mood():
             flash(f"แนะนำเพลงตามอารมณ์ไม่สำเร็จ: {e}")
             return redirect(url_for("mood"))
     return render_template("mood.html", mood_text=None, tag=None, results=None, user_playlists=user_playlists)
+
+@app.post("/mood/build_top10")
+@login_required
+def mood_build_top10():
+    tag = (request.form.get("tag") or "").strip()
+    name = (request.form.get("name") or f"Top 10 - {tag}").strip()
+    is_public = bool(request.form.get("is_public"))
+
+    if not tag:
+        flash("ไม่พบแท็กสำหรับสร้างเพลย์ลิสต์")
+        return redirect(url_for("mood"))
+
+    try:
+        # ดึง 10 เพลงจากแท็ก
+        tracks = lastfm_client.top_tracks_by_tag(tag, limit=10)
+        if not tracks:
+            flash("ไม่พบเพลงจากแท็กนี้")
+            return redirect(url_for("mood"))
+
+        # สร้างเพลย์ลิสต์ใหม่
+        pid = repo.create_playlist(int(current_user.id), name, f"Top 10 from tag '{tag}'", is_public)
+
+        # ใส่เพลงลงเพลย์ลิสต์ (เรียงตามอันดับ)
+        for t in tracks:
+            tr = Track(title=t["title"], artist=t["artist"], url=t.get("url"), mbid=t.get("mbid"))
+            repo.insert_playlist_track(pid, tr)
+
+        flash("สร้างเพลย์ลิสต์ Top 10 สำเร็จ")
+        return redirect(url_for("playlist_detail", playlist_id=pid))
+    except Exception as e:
+        current_app.logger.exception("build_top10 failed")
+        flash(f"สร้างเพลย์ลิสต์ไม่สำเร็จ: {e}")
+        return redirect(url_for("mood"))
 
 # ----------------- Spotify Export -----------------
 SPOTIFY_AUTH_BASE = "https://accounts.spotify.com/authorize"

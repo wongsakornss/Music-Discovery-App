@@ -2,26 +2,48 @@
 {% block content %}
 <h2 class="text-xl font-semibold">แนะนำเพลงตามอารมณ์ (Mood)</h2>
 <form method="post" class="mt-4 grid gap-3 max-w-lg">
-  <input name="mood" placeholder="เช่น อ่านหนังสือ / โฟกัส / ออกกำลังกาย / พักผ่อน" class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
+  <input name="mood" placeholder="เช่น อ่านหนังสือ / โฟกัส / ออกกำลังกาย / พักผ่อน"
+         class="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
   <button class="rounded-2xl bg-emerald-500 px-5 py-3 font-medium hover:bg-emerald-400">แนะนำเพลง</button>
 </form>
 
 {% if results is not none %}
-  <p class="mt-4 text-sm text-white/60">ใช้แท็ก: <span class="text-emerald-300 font-mono">{{ tag }}</span></p>
+  <p class="mt-4 text-sm text-white/60">
+    ใช้แท็ก: <span class="text-emerald-300 font-mono">{{ tag }}</span>
+  </p>
+
+  <!-- ปุ่ม Build Top 10 -->
+  <form method="post" action="{{ url_for('mood_build_top10') }}"
+        class="mt-3 flex flex-wrap items-center gap-2">
+    <input type="hidden" name="tag" value="{{ tag }}">
+    <input name="name" value="Top 10 - {{ tag }}"
+           class="rounded-xl bg-white/5 border border-white/10 px-3 py-2">
+    <label class="inline-flex items-center gap-2 text-sm">
+      <input type="checkbox" name="is_public">
+      <span>สาธารณะ</span>
+    </label>
+    <button class="rounded-xl bg-emerald-500 px-3 py-2 text-sm hover:bg-emerald-400">
+      Build Top 10
+    </button>
+  </form>
+
   <div class="mt-5 grid gap-3">
     {% for t in results %}
     <div class="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between">
       <div>
         <div class="font-medium">{{ t.title }}</div>
         <div class="text-white/60 text-sm">โดย {{ t.artist }}</div>
-        {% if t.url %}<a href="{{ t.url }}" target="_blank" class="text-emerald-300 text-sm hover:underline">ดูบน Last.fm</a>{% endif %}
+        {% if t.url %}<a href="{{ t.url }}" target="_blank" rel="noopener"
+          class="text-emerald-300 text-sm hover:underline">ดูบน Last.fm</a>{% endif %}
       </div>
-      <!-- เลือกเพลย์ลิสต์ปลายทางแบบทันใจ -->
-      <form action="" method="post" onsubmit="this.action='/playlist/'+(document.getElementById('dest_pl_mood').value)+'/add';">
-        <input type="hidden" name="title" value="{{ t.title }}"/>
-        <input type="hidden" name="artist" value="{{ t.artist }}"/>
-        <input type="hidden" name="url" value="{{ t.url }}"/>
-        <input type="hidden" name="mbid" value="{{ t.mbid }}"/>
+
+      <!-- เพิ่มเพลงไปเพลย์ลิสต์ที่มีอยู่ -->
+      <form action="" method="post"
+            onsubmit="this.action='/playlist/'+(document.getElementById('dest_pl_mood').value)+'/add';">
+        <input type="hidden" name="title" value="{{ t.title }}">
+        <input type="hidden" name="artist" value="{{ t.artist }}">
+        <input type="hidden" name="url" value="{{ t.url }}">
+        <input type="hidden" name="mbid" value="{{ t.mbid }}">
         <select id="dest_pl_mood" class="rounded-xl bg-white/5 border border-white/10 px-3 py-2 mr-2">
           {% for p in user_playlists %}
             <option value="{{ p.id }}">{{ p.name }}</option>
