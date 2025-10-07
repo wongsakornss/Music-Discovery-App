@@ -98,7 +98,7 @@ class StorageRepository:
                     artist TEXT NOT NULL,
                     url TEXT,
                     mbid TEXT,
-                    position INTEGER NOT NULL DEFAULT 0,
+                    position INTEGER NOT NULL,
                     added_at TEXT NOT NULL,
                     FOREIGN KEY(playlist_id) REFERENCES playlists(id) ON DELETE CASCADE
                 );
@@ -194,6 +194,23 @@ class StorageRepository:
                 {"uid": user_id, "name": name, "desc": description, "pub": 1 if is_public else 0, "c": now, "u": now},
             )
             return cur.lastrowid
+        
+    def delete_playlist(self, playlist_id: int, user_id: int) -> bool:
+        with self.engine.begin() as conn:
+            # ยืนยันความเป็นเจ้าของ
+            row = conn.execute(
+                text("SELECT 1 FROM playlists WHERE id=:pid AND user_id=:uid"),
+                {"pid": playlist_id, "uid": user_id}
+            ).fetchone()
+            if not row:
+                raise PermissionError("Permission denied for this playlist")
+    
+            # ลบตัวเพลย์ลิสต์ (playlist_tracks จะโดนลบอัตโนมัติด้วย ON DELETE CASCADE)
+            res = conn.execute(
+                text("DELETE FROM playlists WHERE id=:pid AND user_id=:uid"),
+                {"pid": playlist_id, "uid": user_id}
+            )
+            return res.rowcount > 0
 
     def list_playlists(self, user_id: int) -> List[dict]:
         with self.engine.begin() as conn:
@@ -251,7 +268,7 @@ class StorageRepository:
                 text("SELECT COALESCE(MAX(position), -1) FROM playlist_tracks WHERE playlist_id=:pid"),
                 {"pid": playlist_id},
             ).fetchone()
-            next_pos = (pos_row[0] or -1) + 1
+            next_pos = (pos_row[0] if pos_row[0] is not None else 0) + 1
             conn.execute(
                 text("""
                     INSERT INTO playlist_tracks (playlist_id, title, artist, url, mbid, position, added_at)
