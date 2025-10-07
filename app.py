@@ -1,4 +1,7 @@
 import os
+import time
+
+from requests import session
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 from typing import Optional
 from urllib.parse import urlencode
@@ -187,6 +190,23 @@ def playlist_edit(playlist_id: int):
     playlist.update_playlist_meta(playlist_id, int(current_user.id), name=name, description=desc, is_public=is_public)
     flash("บันทึกข้อมูลเพลย์ลิสต์แล้ว")
     return redirect(url_for("playlist_detail", playlist_id=playlist_id))
+
+@app.post("/playlist/<int:playlist_id>/delete")
+@login_required
+def playlist_delete(playlist_id: int):
+    try:
+        ok = repo.delete_playlist(playlist_id, int(current_user.id))
+        if ok:
+            flash("ลบเพลย์ลิสต์เรียบร้อย")
+        else:
+            flash("ไม่พบเพลย์ลิสต์นี้หรือถูกลบไปแล้ว")
+    except PermissionError:
+        flash("คุณไม่มีสิทธิ์ลบเพลย์ลิสต์นี้")
+    except Exception as e:
+        current_app.logger.exception("delete playlist failed")
+        flash(f"ลบเพลย์ลิสต์ไม่สำเร็จ: {e}")
+    return redirect(url_for("playlists_view"))
+
 
 @app.route("/playlist/<int:playlist_id>/share")
 @login_required
