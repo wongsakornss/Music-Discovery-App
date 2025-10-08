@@ -14,6 +14,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from requests_oauthlib import OAuth2Session
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask import session as flask_session
 
 load_dotenv()
 
@@ -434,9 +435,9 @@ def spotify_login():
     sess = spotify_session()
     auth_url, state = sess.authorization_url(
         SPOTIFY_AUTH_BASE,
-        show_dialog="true"  # บังคับถามอีกรอบ
+        show_dialog="true",
     )
-    session["spotify_oauth_state"] = state  # กัน CSRF/ตรวจ state
+    flask_session["spotify_oauth_state"] = state  # ✅ ใช้ flask_session แทน
     return redirect(auth_url)
 
 @app.route("/spotify/callback")
