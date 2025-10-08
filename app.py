@@ -466,7 +466,6 @@ def spotify_callback():
             client_secret=client_secret,
             authorization_response=request.url,
             include_client_id=True,             # ช่วยระบุ client_id ชัดเจน
-            redirect_uri=redirect_uri           # บังคับให้ตรงกับตอนขออนุญาต
         )
 
         expires_at = None
