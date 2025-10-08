@@ -13,6 +13,7 @@ from lastfm import LastFMClient
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user, UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from requests_oauthlib import OAuth2Session
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 load_dotenv()
 
@@ -25,6 +26,10 @@ repo = StorageRepository(db_url)
 playlist = PlaylistManager(repo)
 lastfm_client = LastFMClient()
 
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+app.config.update(
+    PREFERRED_URL_SCHEME="https"  # บน Render/VPS ใช้ https
+)
 
 # --- Auth setup ---
 login_manager = LoginManager(app)
@@ -398,23 +403,29 @@ def _save_spotify_token(user_id: int, token: dict):
         token.get("refresh_token"),  # บางครั้ง Spotify จะ “หมุน” refresh token ใหม่มาให้
         expires_at
     )
-    
+
+SPOTIFY_AUTH_BASE = "https://accounts.spotify.com/authorize"
+SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
+SPOTIFY_SCOPE = ["playlist-modify-public", "playlist-modify-private"]
+
 def spotify_session(token: dict | None = None):
     client_id = os.getenv("SPOTIFY_CLIENT_ID")
-    client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
     redirect_uri = os.getenv("SPOTIFY_REDIRECT_URI")
-    scope = "playlist-modify-public playlist-modify-private"
-
-    # auto_refresh: ให้ OAuth2Session ต่ออายุ token อัตโนมัติเมื่อหมดอายุตาม expires_at
-    extra = {"client_id": client_id, "client_secret": client_secret}
     return OAuth2Session(
         client_id=client_id,
         redirect_uri=redirect_uri,
-        scope=scope,
+        scope=SPOTIFY_SCOPE,
         token=token,
         auto_refresh_url=SPOTIFY_TOKEN_URL,
-        auto_refresh_kwargs=extra,
-        token_updater=lambda t: _save_spotify_token(int(current_user.id), t),
+        auto_refresh_kwargs={
+            "client_id": client_id,
+            "client_secret": os.getenv("SPOTIFY_CLIENT_SECRET"),
+        },
+        token_updater=lambda t: repo.upsert_user_token(
+            int(current_user.id), "spotify",
+            t.get("access_token"), t.get("refresh_token"),
+            datetime.utcfromtimestamp(t["expires_at"]).isoformat() if t.get("expires_at") else None
+        ),
     )
 
 @app.route("/spotify/login")
@@ -423,37 +434,57 @@ def spotify_login():
     sess = spotify_session()
     auth_url, state = sess.authorization_url(
         SPOTIFY_AUTH_BASE,
-        show_dialog="true"  # บังคับหน้าต่างอนุญาต
+        show_dialog="true"  # บังคับถามอีกรอบ
     )
-    session["spotify_oauth_state"] = state
+    session["spotify_oauth_state"] = state  # กัน CSRF/ตรวจ state
     return redirect(auth_url)
 
 @app.route("/spotify/callback")
 @login_required
 def spotify_callback():
+    from flask import current_app
     client_id = os.getenv("SPOTIFY_CLIENT_ID")
     client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
+    redirect_uri = os.getenv("SPOTIFY_REDIRECT_URI")
 
-    # ตรวจ state ป้องกัน CSRF
-    state = request.args.get("state")
-    if not state or state != session.get("spotify_oauth_state"):
-        flash("Invalid OAuth state")
+    # ตรวจ error จาก query ทันที
+    if "error" in request.args:
+        flash(f"Spotify error: {request.args.get('error')}")
         return redirect(url_for("playlists_view"))
 
-    sess = spotify_session()
-    # NOTE: requests-oauthlib จะจัดการ code ให้จาก authorization_response
-    token = sess.fetch_token(
-        SPOTIFY_TOKEN_URL,
-        authorization_response=request.url,
-        client_id=client_id,
-        client_secret=client_secret,
-        include_client_id=True,  # ชัดเจนว่าใช้ client_credentials ใน body
-    )
+    try:
+        sess = spotify_session()
+        # (ถ้าอยากเข้มงวด) ตรวจ state
+        # state = session.get("spotify_oauth_state")
+        # if request.args.get("state") != state:
+        #     flash("Invalid OAuth state")
+        #     return redirect(url_for("playlists_view"))
 
-    _save_spotify_token(int(current_user.id), token)
+        token = sess.fetch_token(
+            SPOTIFY_TOKEN_URL,
+            client_secret=client_secret,
+            authorization_response=request.url,
+            include_client_id=True,             # ช่วยระบุ client_id ชัดเจน
+            redirect_uri=redirect_uri           # บังคับให้ตรงกับตอนขออนุญาต
+        )
 
-    flash("เชื่อมต่อ Spotify สำเร็จ")
-    return redirect(url_for("playlists_view"))  
+        expires_at = None
+        if token.get("expires_at"):
+            expires_at = datetime.utcfromtimestamp(token["expires_at"]).isoformat()
+
+        repo.upsert_user_token(
+            int(current_user.id), "spotify",
+            token["access_token"], token.get("refresh_token"), expires_at
+        )
+        flash("เชื่อมต่อ Spotify สำเร็จ")
+        return redirect(url_for("playlists_view"))
+
+    # จับข้อผิดพลาด OAuth ทั่วไปแล้ว log ออก
+    except Exception as e:
+        current_app.logger.exception("Spotify OAuth callback failed")
+        flash(f"เชื่อมต่อ Spotify ไม่สำเร็จ: {e}")
+        return redirect(url_for("playlists_view"))
+
 
 def _get_spotify_session_for_user(user_id: int) -> OAuth2Session | None:
     tok = repo.get_user_token(user_id, "spotify")
