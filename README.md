@@ -62,7 +62,7 @@
 ## How to run
 ### 1. โคลนโปรเจกต์
 ```bash
-git clone https://github.com/<your-username>/music-discovery-app.git
+git clone https://github.com/wongsakornss/music-discovery-app.git
 cd music-discovery-app
 ```
 ### 2. ตั้งค่า Environment
