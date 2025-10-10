@@ -6,6 +6,10 @@
 
 ---
 
+Public Website Link : https://music-discovery-app-cr9t.onrender.com
+
+---
+
 ### สมาชิกกลุ่ม:
 
 - ฟอง Project Manager / CI-CD (รหัสนักศึกษา 643021215-2)
